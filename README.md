@@ -1,25 +1,48 @@
-# NativeScript JavaScript Template
+# Plugins' platforms directory should not exist in tns_modules
 
-This template creates a "Hello, world" NativeScript app using JavaScript.
+## Issue
+Plugins' `platforms` directory should not exist in `<project dir>/platforms/<platform>/.../app/tns_modules/`
+During project preparation CLI copies all `node_modules` to `tns_modules` directory and cleans their native files, located in their `platforms` directories.
+However, in case NativeScript plugin is a dependency of another NativeScript plugin and `npm` places it inside `node_modules` of the plugin, not at the root of the project, CLI does not clean the `platforms` directory of the inner plugin.
+This issues occurs mainly in case there's a local plugin.
 
-This is the default template, so you can create a new app that uses it with the `--template` option:
-
+## Steps to reproduce:
+1. Clone this repo:
 ```
-tns create my-app-name --template tns-template-hello-world
-```
-
-Or without it:
-
-```
-tns create my-app-name
+$ git clone https://github.com/rosen-vladimirov/application-tns_modules-native-files.git
 ```
 
-> Note: Both commands will create a new NativeScript app that uses the latest version of this template published to [npm] (https://www.npmjs.com/package/tns-template-hello-world).
-
-If you want to create a new app that uses the source of the template from the `master` branch, you can execute the following:
-
+2. Get inside the `nativescript-ui-listview` directory and execute `npm install` there:
 ```
-tns create my-app-name --template https://github.com/NativeScript/template-hello-world.git#master
+$ cd application-tns_modules-native-files/nativescript-ui-listview
+$ npm i
 ```
 
-**NB:** Please, have in mind that the master branch may refer to dependencies that are not on NPM yet!
+3. Get back inside the project dir and build the application:
+
+```
+$ cd ..
+$ tns build ios
+$ tns build android
+```
+
+4. Check the following dir - it should not exist, but in fact it is there:
+```
+$ ls -l platforms/ios/applicationtnsmodulesnativefiles/app/tns_modules/nativescript-ui-listview/node_modules/nativescript-ui-core/platforms
+
+$ ls -l platforms/android/app/src/main/assets/app/tns_modules/nativescript-ui-listview/node_modules/nativescript-ui-core/platforms
+
+```
+
+Full script:
+```
+git clone https://github.com/rosen-vladimirov/application-tns_modules-native-files.git
+cd application-tns_modules-native-files/nativescript-ui-listview
+npm i
+cd ..
+tns build ios
+tns build android
+ls -l platforms/ios/applicationtnsmodulesnativefiles/app/tns_modules/nativescript-ui-listview/node_modules/nativescript-ui-core/platforms
+ls -l platforms/android/app/src/main/assets/app/tns_modules/nativescript-ui-listview/node_modules/nativescript-ui-core/platforms
+
+```
